@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Membangun Kekuatan</title>
+    
+    <!-- React & Tailwind -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: #000000;
+            color: white;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            /* Scroll diizinkan sekarang */
+            overflow-x: hidden; 
+            overflow-y: auto;
+        }
+
+        /* Animasi Transisi Halus */
+        .fade-enter { opacity: 0; }
+        .fade-enter-active { opacity: 1; transition: opacity 500ms ease-in; }
+        .fade-exit { opacity: 1; }
+        .fade-exit-active { opacity: 0; transition: opacity 500ms ease-out; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+
+        const App = () => {
+            const [started, setStarted] = useState(false);
+            const [audioError, setAudioError] = useState(false);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const audioRef = useRef(null);
+
+            // FILE PATHS
+            const imgIntro = "1000182153.png"; // Gambar Angsa
+            const imgMain = "1000182152.png";  // Gambar Poster Teks
+            const imgLogo = "logo.png";        // Logo
+            const audioSrc = "angsa dan telur emas.mp3"; 
+
+            const handleEnter = () => {
+                const audio = audioRef.current;
+                if (audio) {
+                    audio.src = audioSrc;
+                    audio.load();
+                    
+                    const playPromise = audio.play();
+
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            setIsPlaying(true);
+                            setStarted(true);
+                        })
+                        .catch(error => {
+                            console.error("Autoplay prevented:", error);
+                            setStarted(true); 
+                            setAudioError(true); 
+                        });
+                    }
+                } else {
+                    setStarted(true);
+                }
+            };
+
+            const togglePlay = (e) => {
+                e.stopPropagation();
+                const audio = audioRef.current;
+                if (isPlaying) {
+                    audio.pause();
+                } else {
+                    audio.play();
+                }
+                setIsPlaying(!isPlaying);
+            };
+
+            return (
+                <div className="relative w-full min-h-[100dvh] bg-black">
+                    <audio ref={audioRef} loop />
+
+                    {/* === SLIDE 1: PEMBUKA (INTRO) === */}
+                    <div 
+                        onClick={handleEnter}
+                        className={`absolute inset-0 z-20 w-full min-h-[100dvh] flex flex-col items-center justify-between py-8 transition-all duration-700 cursor-pointer ${started ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                        style={{
+                            backgroundImage: `url(${imgIntro})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundAttachment: 'fixed' // Parallax effect biar keren dikit
+                        }}
+                    >
+                        {/* Overlay Gelap */}
+                        <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
+
+                        {/* Logo - Responsif di Landscape */}
+                        <div className="relative z-10 w-full flex justify-center pt-4 landscape:pt-2">
+                            <img 
+                                src={imgLogo} 
+                                alt="Logo" 
+                                className="w-28 md:w-48 landscape:w-20 object-contain drop-shadow-2xl filter brightness-110 transition-all"
+                            />
+                        </div>
+
+                        {/* Area Bawah: Indikator Klik */}
+                        <div className="relative z-10 animate-bounce pb-8 landscape:pb-4">
+                            <div className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-6 py-2 rounded-full font-medium text-sm tracking-widest uppercase shadow-lg hover:bg-white/30 transition-colors">
+                                Sentuh Layar Masuk
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* === SLIDE 2: UTAMA (CONTENT) === */}
+                    <div className={`fixed inset-0 z-10 bg-black flex flex-col items-center justify-center transition-opacity duration-1000 ${started ? 'opacity-100' : 'opacity-0'}`}>
+                        
+                        {/* Container Gambar scrollable jika perlu di layar kecil */}
+                        <div className="w-full h-full overflow-y-auto flex items-center justify-center p-0 md:p-4 no-scrollbar">
+                            <img 
+                                src={imgMain} 
+                                alt="Main Content" 
+                                className="w-full h-auto object-contain max-h-[100dvh] md:max-h-screen landscape:max-h-screen mx-auto"
+                            />
+                        </div>
+
+                        {/* Audio Player */}
+                        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-3 bg-gray-900/90 backdrop-blur-lg border border-gray-600 rounded-full pl-2 pr-4 py-2 shadow-2xl z-50">
+                            
+                            <button 
+                                onClick={togglePlay}
+                                className="w-10 h-10 flex items-center justify-center bg-yellow-600 rounded-full text-white shadow-lg hover:scale-105 active:scale-95 transition-all"
+                            >
+                                {isPlaying ? (
+                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
+                                ) : (
+                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" className="ml-1"><path d="M8 5v14l11-7z"/></svg>
+                                )}
+                            </button>
+
+                            <div className="flex flex-col pr-2 text-left">
+                                <span className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Now Playing</span>
+                                <span className="text-xs text-white font-medium truncate max-w-[120px]">
+                                    Angsa & Telur Emas
+                                </span>
+                            </div>
+                            
+                            {isPlaying && (
+                                <div className="flex items-end gap-[2px] h-4">
+                                    <div className="w-1 bg-yellow-500 animate-[bounce_1s_infinite]"></div>
+                                    <div className="w-1 bg-yellow-500 animate-[bounce_1.2s_infinite]"></div>
+                                    <div className="w-1 bg-yellow-500 animate-[bounce_0.8s_infinite]"></div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
+
